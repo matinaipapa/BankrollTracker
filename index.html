@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GG Poker - Tournament Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <h1>GG<span>Tracker</span></h1>
+                <p>Tournament Performance Analytics</p>
+            </div>
+            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label for="initial-bankroll" style="color: #a0a0a0; font-size: 0.9rem; font-weight: 600;">Banca Inicial: $</label>
+                    <input type="number" id="initial-bankroll" value="0" style="width: 90px; padding: 0.5rem; border-radius: 6px; background: var(--card-bg); border: 1px solid var(--border-color); color: white; font-weight: bold;">
+                    <button id="save-bankroll-btn" class="btn-secondary" style="padding: 0.5rem 0.8rem; background: var(--card-bg); border-color: var(--border-color); border-radius: 6px; cursor: pointer; color: white;" title="Guardar Banca Inicial">💾</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="export-backup-btn" class="btn-secondary" style="padding: 0.5rem 0.8rem; background: var(--card-bg); border-color: var(--border-color); border-radius: 6px; cursor: pointer; color: white;" title="Descargar Backup">⬇️ Hacer Backup</button>
+                    <button id="import-backup-btn" class="btn-secondary" style="padding: 0.5rem 0.8rem; background: var(--card-bg); border-color: var(--border-color); border-radius: 6px; cursor: pointer; color: white;" title="Restaurar Backup">⬆️ Cargar Backup</button>
+                    <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                </div>
+                <button id="add-tournament-btn" class="btn-primary">+ Nuevo Torneo</button>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card" id="stat-profit">
+                <label>Profit Total</label>
+                <div class="value">$0.00</div>
+                <div class="trend">0.0%</div>
+            </div>
+            <div class="stat-card" id="stat-roi">
+                <label>ROI</label>
+                <div class="value">0%</div>
+                <div class="sub-label">Return on Investment</div>
+            </div>
+            <div class="stat-card" id="stat-itm" title="ITM (> buy in)">
+                <label>ITM%</label>
+                <div class="value">0%</div>
+                <div class="sub-label">Cobro &ge; Buy-in</div>
+            </div>
+            <div class="stat-card" id="stat-avg-buyin">
+                <label>Avg Buy-in</label>
+                <div class="value">$0.00</div>
+                <div class="sub-label">Media de entrada</div>
+            </div>
+            <div class="stat-card" id="stat-max-win">
+                <label>Mayor Ganancia</label>
+                <div class="value">$0.00</div>
+                <div class="sub-label">Mejor cobro neto</div>
+            </div>
+            <div class="stat-card" id="stat-itm-count">
+                <label>Puestos Premiados</label>
+                <div class="value">0</div>
+                <div class="sub-label">Total de cobros (ITM)</div>
+            </div>
+            <div class="stat-card" id="stat-max-buyin">
+                <label>Buy-in Más Alto</label>
+                <div class="value">$0.00</div>
+                <div class="sub-label">Mayor entrada pagada</div>
+            </div>
+            <div class="stat-card" id="stat-total-buyin">
+                <label>Buy-ins Totales</label>
+                <div class="value">$0.00</div>
+                <div class="sub-label">Total invertido</div>
+            </div>
+            <div class="stat-card" id="stat-ft-count">
+                <label>Final Tables</label>
+                <div class="value">0</div>
+                <div class="sub-label">Top 9</div>
+            </div>
+        </section>
+
+        <section class="chart-section card">
+            <div class="card-header" style="flex-direction: column; align-items: stretch; gap: 15px;">
+                <h2>Evolución de Banca</h2>
+                
+                <div class="filters" style="display: flex; gap: 15px; flex-wrap: wrap; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); align-items: flex-end;">
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="color: var(--text-dim); font-size: 0.8rem;">Fecha:</label>
+                        <select id="date-filter" class="filter-select" onchange="toggleCustomDate(); updateUI()">
+                            <option value="ALL">Desde siempre</option>
+                            <option value="TODAY">Hoy</option>
+                            <option value="YESTERDAY">Ayer y Hoy</option>
+                            <option value="3_DAYS">Últimos 3 días</option>
+                            <option value="7_DAYS">Últimos 7 días</option>
+                            <option value="THIS_MONTH">Mes en curso</option>
+                            <option value="CUSTOM">Personalizado...</option>
+                        </select>
+                    </div>
+
+                    <div id="custom-date-container" style="display: none; flex-direction: column; gap: 6px;">
+                        <label style="color: var(--text-dim); font-size: 0.8rem;">Rango Personalizado:</label>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="date" id="date-from" class="filter-select" onchange="updateUI()" oninput="updateUI()" title="Desde">
+                            <input type="date" id="date-to" class="filter-select" onchange="updateUI()" oninput="updateUI()" title="Hasta">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+                    <label style="color: var(--text-dim); font-size: 0.8rem; display: flex; justify-content: space-between;">
+                            <span>Tipos de Torneo (Desmarca para ocultar):</span>
+                            <div>
+                                <span style="color: var(--primary-color); cursor: pointer; text-decoration: underline; margin-right: 15px;" onclick="checkAllFilters()">Marcar Todos</span>
+                                <span style="color: var(--primary-color); cursor: pointer; text-decoration: underline;" onclick="uncheckAllFilters()">Desmarcar Todos</span>
+                            </div>
+                        </label>
+                        <div class="toggle-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <style>
+                                .toggle-label {
+                                    background: rgba(255,255,255,0.05);
+                                    padding: 6px 12px;
+                                    border-radius: 20px;
+                                    font-size: 0.85rem;
+                                    cursor: pointer;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 6px;
+                                    border: 1px solid rgba(255,255,255,0.2);
+                                    color: white;
+                                }
+                                .toggle-label input {
+                                    accent-color: var(--primary-color);
+                                    width: 16px;
+                                    height: 16px;
+                                    cursor: pointer;
+                                }
+                            </style>
+                            <label class="toggle-label"><input type="checkbox" id="tgl-regular" checked onchange="updateUI()"> Clásicos</label>
+                            <label class="toggle-label"><input type="checkbox" id="tgl-bounty" checked onchange="updateUI()"> Bounty/PKO</label>
+                            <label class="toggle-label"><input type="checkbox" id="tgl-turbo" checked onchange="updateUI()"> Turbo</label>
+                            <label class="toggle-label"><input type="checkbox" id="tgl-hyper" checked onchange="updateUI()"> Hyper</label>
+                            <label class="toggle-label"><input type="checkbox" id="tgl-ggseries" checked onchange="updateUI()"> GG Series</label>
+                            <label class="toggle-label"><input type="checkbox" id="tgl-wsop" checked onchange="updateUI()"> WSOP</label>
+                            <label class="toggle-label"><input type="checkbox" id="tgl-flipout" checked onchange="updateUI()"> Flipouts</label>
+                            <label class="toggle-label"><input type="checkbox" id="tgl-sat" checked onchange="updateUI()"> Satélites/Steps</label>
+                            <label class="toggle-label"><input type="checkbox" id="tgl-tbuilder" checked onchange="updateUI()"> T$ Builder</label>
+                            <label class="toggle-label"><input type="checkbox" id="tgl-ft" checked onchange="updateUI()"> Final Tables</label>
+                        </div>
+                    </div>
+
+                    <div style="margin-left: auto;">
+                        <button id="toggle-session-mode" class="btn-secondary">Vista: Torneos</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <!-- Chart will be rendered here -->
+                <canvas id="bankrollChart"></canvas>
+            </div>
+        </section>
+
+        <section class="history-section card">
+            <div class="card-header" style="flex-direction: column; align-items: flex-start; gap: 15px;">
+                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                    <h2>Historial de Torneos</h2>
+                    <div class="actions">
+                        <button id="delete-selected-btn" class="btn-secondary" style="color: #ff5252; display: none; border-color: #ff5252; margin-right: 8px;">🗑️ Eliminar Seleccionados</button>
+                        <button id="delete-all-btn" class="btn-secondary" style="color: #ff5252; border-color: #ff5252; margin-right: 8px;" onclick="deleteAllTournaments()">⚠️ Vaciar Base</button>
+                        <input type="file" id="file-upload" multiple accept=".txt,.zip" style="display: none;">
+                        <button id="upload-txt-btn" class="btn-secondary" title="Puedes subir los TXT sueltos o el .ZIP de GGPoker directo">Subir TXT / ZIP</button>
+                        <button id="export-csv" class="btn-secondary">Exportar</button>
+                    </div>
+                </div>
+
+            </div>
+            <div class="table-wrapper">
+                <style>
+                    .sortable {
+                        cursor: pointer;
+                        user-select: none;
+                        transition: color 0.2s;
+                    }
+                    .sortable:hover {
+                        color: var(--primary-color);
+                    }
+                    .sort-icon {
+                        font-size: 0.8em;
+                        margin-left: 4px;
+                        display: inline-block;
+                        width: 12px;
+                        color: var(--primary-color);
+                    }
+                </style>
+                <table id="tournament-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all-cb" style="width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-color);"></th>
+                            <th class="sortable" data-sort="date" onclick="sortTable('date')">FECHA <span class="sort-icon">▼</span></th>
+                            <th class="sortable" data-sort="name" onclick="sortTable('name')">TORNEO <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="buyin" onclick="sortTable('buyin')">BUY-IN <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="reentries" onclick="sortTable('reentries')">RE-ENTRYS <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="cash" onclick="sortTable('cash')">COBRO <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="profit" onclick="sortTable('profit')">PROFIT <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="pos" onclick="sortTable('pos')">POS. / JUG. <span class="sort-icon"></span></th>
+                            <th>FOTO</th>
+                            <th>ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tournament-list">
+                        <!-- Items dynamically added -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal for adding tournament -->
+    <div id="modal-overlay" class="hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Registrar Torneo</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="tournament-form">
+                <div class="form-group">
+                    <label>Nombre del Torneo</label>
+                    <input type="text" id="t-name" placeholder="Ej: GGMasters $25" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Buy-in ($)</label>
+                        <input type="number" id="t-buyin" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Re-entries</label>
+                        <input type="number" id="t-reentries" value="0" min="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cobro / Premio ($)</label>
+                        <input type="number" id="t-cash" step="0.01" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Posición Final</label>
+                        <input type="number" id="t-pos" placeholder="Ej: 14">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Total Jugadores</label>
+                        <input type="number" id="t-total-players" placeholder="Ej: 7275">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="t-date" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Foto / Screenshot (Opcional)</label>
+                    <input type="file" id="t-image" accept="image/*" style="padding: 0.5rem; background: var(--bg-color); border: 1px solid var(--border-color); color: white; border-radius: 8px; width: 100%;">
+                    <img id="t-image-preview" src="" style="display: none; max-width: 100px; margin-top: 10px; cursor: pointer; border-radius: 4px; border: 1px solid var(--border-color);" onclick="viewPreviewImage()" title="Click para ver en grande">
+                </div>
+                <button type="submit" class="btn-primary btn-block">Guardar Torneo</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for viewing image -->
+    <div id="image-viewer-overlay" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 2000; transition: opacity 0.3s ease;">
+        <span class="close-image-viewer" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 2rem; cursor: pointer;">&times;</span>
+        <img id="viewer-img" src="" style="max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="app.js?v=18"></script>
+</body>
+</html>
