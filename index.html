@@ -28,52 +28,71 @@
                 <button id="add-tournament-btn" class="btn-primary">+ Nuevo Torneo</button>
             </div>
         </header>
+        <div id="session-mode-banner" style="display: none; background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05)); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 10px 20px; margin-bottom: 15px; text-align: center; color: #ffd700; font-weight: 600; font-size: 0.95rem; letter-spacing: 0.5px;">
+            📊 Modo Sesión: <span id="session-mode-label">Diaria</span>
+        </div>
+        <div id="bankroll-alert" style="display: none; border: 1px solid; border-radius: 12px; padding: 10px 20px; margin-bottom: 15px; text-align: center; font-weight: 500; font-size: 0.9rem;"></div>
 
         <section class="stats-grid">
-            <div class="stat-card" id="stat-profit">
+            <div class="stat-card" id="stat-profit" title="Ganancia neta total. Se calcula como: Total Cobrado − Total Invertido (buy-ins + re-entrys).">
                 <label>Profit Total</label>
                 <div class="value">$0.00</div>
                 <div class="trend">0.0%</div>
             </div>
-            <div class="stat-card" id="stat-roi">
+            <div class="stat-card" id="stat-roi" title="Return on Investment. Fórmula: (Profit Neto ÷ Total Invertido) × 100. Un ROI de 50% significa que por cada $1 invertido ganaste $0.50 extra.">
                 <label>ROI</label>
                 <div class="value">0%</div>
                 <div class="sub-label">Return on Investment</div>
             </div>
-            <div class="stat-card" id="stat-itm" title="ITM (> buy in)">
+            <div class="stat-card" id="stat-itm" title="In The Money. Porcentaje de torneos donde tu cobro fue igual o mayor al costo total de entrada (buy-in + re-entrys). Un buen ITM en MTT es 15-20%.">
                 <label>ITM%</label>
                 <div class="value">0%</div>
                 <div class="sub-label">Cobro &ge; Buy-in</div>
             </div>
-            <div class="stat-card" id="stat-avg-buyin">
+            <div class="stat-card" id="stat-avg-buyin" title="Promedio del costo total de tus entradas. Útil para saber en qué rango de stakes estás jugando habitualmente.">
                 <label>Avg Buy-in</label>
                 <div class="value">$0.00</div>
                 <div class="sub-label">Media de entrada</div>
             </div>
-            <div class="stat-card" id="stat-max-win">
+            <div class="stat-card" id="stat-max-win" title="Tu mejor resultado en un solo torneo. Se calcula como: Cobro − (Buy-in × (1 + Re-entrys)). Es tu premio neto más alto.">
                 <label>Mayor Ganancia</label>
                 <div class="value">$0.00</div>
                 <div class="sub-label">Mejor cobro neto</div>
             </div>
-            <div class="stat-card" id="stat-itm-count">
+            <div class="stat-card" id="stat-itm-count" title="Cantidad de veces que terminaste en posición de cobro (tu cobro fue igual o mayor al costo de entrada).">
                 <label>Puestos Premiados</label>
                 <div class="value">0</div>
                 <div class="sub-label">Total de cobros (ITM)</div>
             </div>
-            <div class="stat-card" id="stat-max-buyin">
+            <div class="stat-card" id="stat-max-buyin" title="El torneo más caro en el que participaste, considerando buy-in × (1 + re-entrys). Sirve para evaluar tu manejo de bankroll.">
                 <label>Buy-in Más Alto</label>
                 <div class="value">$0.00</div>
                 <div class="sub-label">Mayor entrada pagada</div>
             </div>
-            <div class="stat-card" id="stat-total-buyin">
+            <div class="stat-card" id="stat-total-buyin" title="Suma total de todo lo que invertiste en buy-ins y re-entrys. Es tu 'capital en riesgo' acumulado.">
                 <label>Buy-ins Totales</label>
                 <div class="value">$0.00</div>
                 <div class="sub-label">Total invertido</div>
             </div>
-            <div class="stat-card" id="stat-ft-count">
+            <div class="stat-card" id="stat-ft-count" title="Cantidad de veces que llegaste a la Mesa Final (Top 9) en torneos con 18 o más jugadores. Indicador clave de consistencia.">
                 <label>Final Tables</label>
                 <div class="value">0</div>
                 <div class="sub-label">Top 9</div>
+            </div>
+            <div class="stat-card" id="stat-total-played" title="Cantidad total de torneos jugados según los filtros activos.">
+                <label>Torneos Jugados</label>
+                <div class="value">0</div>
+                <div class="sub-label">Total registrados</div>
+            </div>
+            <div class="stat-card" id="stat-streak" title="Tu racha actual de sesiones (días) consecutivas positivas o negativas. Una sesión es positiva si el profit del día es mayor a 0.">
+                <label>Racha Actual</label>
+                <div class="value">-</div>
+                <div class="sub-label">Sesiones consecutivas</div>
+            </div>
+            <div class="stat-card" id="stat-drawdown" title="Max Drawdown: la mayor caída acumulada desde un punto alto de tu bankroll. Indica tu peor racha de pérdidas. Cuanto menor, más estable es tu juego.">
+                <label>Max Drawdown</label>
+                <div class="value">$0.00</div>
+                <div class="sub-label">Mayor caída acumulada</div>
             </div>
         </section>
 
@@ -145,14 +164,54 @@
                         </div>
                     </div>
 
-                    <div style="margin-left: auto;">
-                        <button id="toggle-session-mode" class="btn-secondary">Vista: Torneos</button>
+                    <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+                        <select id="session-group-mode" onchange="updateUI()" style="background: #1a1a2e; color: #ffd700; border: 1px solid rgba(255,215,0,0.3); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; cursor: pointer; font-weight: 600;">
+                            <option value="torneos" style="background: #1a1a2e; color: white;">Vista: Torneos</option>
+                            <option value="diario" style="background: #1a1a2e; color: white;">Sesión: Diaria</option>
+                            <option value="semanal" style="background: #1a1a2e; color: white;">Sesión: Semanal</option>
+                            <option value="mensual" style="background: #1a1a2e; color: white;">Sesión: Mensual</option>
+                            <option value="6meses" style="background: #1a1a2e; color: white;">Últimos 6 Meses</option>
+                            <option value="12meses" style="background: #1a1a2e; color: white;">Últimos 12 Meses</option>
+                            <option value="personalizado" style="background: #1a1a2e; color: white;">Personalizado</option>
+                        </select>
+                        <div id="session-custom-range" style="display: none; gap: 8px; align-items: center;">
+                            <input type="date" id="session-from" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 8px; font-size: 0.8rem;" oninput="updateUI()">
+                            <span style="color: rgba(255,255,255,0.5);">→</span>
+                            <input type="date" id="session-to" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 8px; font-size: 0.8rem;" oninput="updateUI()">
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="chart-container">
                 <!-- Chart will be rendered here -->
                 <canvas id="bankrollChart"></canvas>
+            </div>
+        </section>
+
+        <section class="card" style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;">
+                <h2 style="margin-bottom: 15px; font-size: 1.1rem;">📊 Profit por Tipo</h2>
+                <div style="height: 420px;">
+                    <canvas id="profitByTypeChart"></canvas>
+                </div>
+            </div>
+            <div style="flex: 1.4; min-width: 400px;">
+                <h2 style="margin-bottom: 15px; font-size: 1.1rem;">📋 ROI por Tipo</h2>
+                <div class="table-wrapper">
+                    <table id="roi-by-type-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Torneos</th>
+                                <th>Invertido</th>
+                                <th>Cobrado</th>
+                                <th>Profit</th>
+                                <th>ROI</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -271,6 +330,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="app.js?v=18"></script>
+    <script src="app.js?v=21"></script>
 </body>
 </html>

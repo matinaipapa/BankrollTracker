@@ -10,7 +10,7 @@ const modalOverlay = document.getElementById('modal-overlay');
 const addBtn = document.getElementById('add-tournament-btn');
 const closeBtn = document.querySelector('.close-modal');
 const formatFilter = document.getElementById('format-filter');
-const toggleSessionBtn = document.getElementById('toggle-session-mode');
+const sessionGroupMode = document.getElementById('session-group-mode');
 
 // Event Listeners for new filters
 const categoryFilter = document.getElementById('category-filter');
@@ -34,12 +34,11 @@ if (formatFilter) formatFilter.addEventListener('change', updateUI);
 if (speedFilter) speedFilter.addEventListener('change', updateUI);
 if (categoryFilter) categoryFilter.addEventListener('change', updateUI);
 
-if (toggleSessionBtn) {
-    toggleSessionBtn.addEventListener('click', () => {
-        if (toggleSessionBtn.textContent.includes('Torneos')) {
-            toggleSessionBtn.textContent = 'Vista: Sesiones';
-        } else {
-            toggleSessionBtn.textContent = 'Vista: Torneos';
+if (sessionGroupMode) {
+    sessionGroupMode.addEventListener('change', () => {
+        const customRange = document.getElementById('session-custom-range');
+        if (customRange) {
+            customRange.style.display = sessionGroupMode.value === 'personalizado' ? 'flex' : 'none';
         }
         updateUI();
     });
@@ -587,9 +586,171 @@ function getFilteredTournaments() {
 
 function updateUI() {
     const filtered = getFilteredTournaments();
+    const groupMode = sessionGroupMode ? sessionGroupMode.value : 'torneos';
+    
+    // Apply session-specific date filtering for stats
+    let statsData = filtered;
+    if (groupMode !== 'torneos') {
+        statsData = applySessionDateFilter(filtered, groupMode);
+    }
+    
     renderTournaments(filtered);
-    calculateStats(filtered);
-    updateChart(filtered);
+    calculateStats(statsData);
+    updateChart(statsData);
+    updateProfitByType(statsData);
+    
+    // Show/hide session mode banner
+    const banner = document.getElementById('session-mode-banner');
+    const label = document.getElementById('session-mode-label');
+    if (banner && label) {
+        if (groupMode !== 'torneos') {
+            const modeLabels = {
+                'diario': 'Diaria',
+                'semanal': 'Semanal',
+                'mensual': 'Mensual',
+                '6meses': 'Últimos 6 Meses',
+                '12meses': 'Últimos 12 Meses',
+                'personalizado': 'Personalizado'
+            };
+            label.textContent = modeLabels[groupMode] || groupMode;
+            banner.style.display = 'block';
+        } else {
+            banner.style.display = 'none';
+        }
+    }
+}
+
+let profitByTypeChart = null;
+
+function classifyTournamentType(name) {
+    const n = name.toUpperCase();
+    if (n.startsWith('T$') || n.includes('T$ BUILDER') || n.includes('T$BUILDER')) return 'T$ Builder';
+    if (n.includes('WSOP')) return 'WSOP';
+    if (n.includes('GG MASTERS') || n.includes('GGMASTERS') || n.includes('GG SERIES') || n.match(/\bGG\b/) || n.match(/(?:^|\s|#|-)\d+\s*-\s*[LMH]\b/)) return 'GG Series';
+    if (n.includes('STEP') || n.includes('SATELLITE') || n.includes('QUALIFIER') || n.includes('SAT ')) return 'Satélite';
+    if (n.includes('THANKSGG') || n.includes('FLIPOUT') || n.includes('FREEROLL') || n.includes('FREE')) return 'Flipout/Free';
+    if (n.includes('HYPER')) {
+        if (n.includes('BOUNTY') || n.includes('PKO')) return 'Hyper Bounty';
+        return 'Hyper';
+    }
+    if (n.includes('TURBO')) {
+        if (n.includes('BOUNTY') || n.includes('PKO')) return 'Turbo Bounty';
+        return 'Turbo';
+    }
+    if (n.includes('BOUNTY') || n.includes('PKO')) return 'Bounty/PKO';
+    return 'Clásico';
+}
+
+function updateProfitByType(data) {
+    const types = {};
+    (data || []).forEach(t => {
+        const type = classifyTournamentType(t.name);
+        if (!types[type]) types[type] = { count: 0, invested: 0, cashed: 0 };
+        const cost = t.buyin * (1 + t.reentries);
+        types[type].count++;
+        types[type].invested += cost;
+        types[type].cashed += t.cash;
+    });
+
+    const labels = Object.keys(types).sort((a, b) => {
+        const pa = types[a].cashed - types[a].invested;
+        const pb = types[b].cashed - types[b].invested;
+        return pb - pa;
+    });
+    const profits = labels.map(l => types[l].cashed - types[l].invested);
+    const colors = profits.map(p => p >= 0 ? 'rgba(76, 175, 80, 0.8)' : 'rgba(255, 82, 82, 0.8)');
+
+    // Chart
+    const ctx = document.getElementById('profitByTypeChart');
+    if (ctx) {
+        if (profitByTypeChart) profitByTypeChart.destroy();
+        profitByTypeChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Profit',
+                    data: profits,
+                    backgroundColor: colors,
+                    borderColor: colors.map(c => c.replace('0.8', '1')),
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `Profit: $${ctx.raw.toFixed(2)}`
+                        }
+                    }
+                },
+                scales: {
+                    x: { ticks: { color: '#a0a0a0', font: { size: 11 } }, grid: { display: false } },
+                    y: {
+                        ticks: { color: '#a0a0a0', callback: v => `$${v}` },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    }
+                }
+            }
+        });
+    }
+
+    // ROI Table
+    const tbody = document.querySelector('#roi-by-type-table tbody');
+    if (tbody) {
+        tbody.innerHTML = '';
+        labels.forEach(type => {
+            const d = types[type];
+            const profit = d.cashed - d.invested;
+            const roi = d.invested > 0 ? (profit / d.invested) * 100 : 0;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${type}</strong></td>
+                <td>${d.count}</td>
+                <td>$${d.invested.toFixed(2)}</td>
+                <td style="color: #ffd700;">$${d.cashed.toFixed(2)}</td>
+                <td class="${profit >= 0 ? 'profit-plus' : 'profit-minus'}">${profit >= 0 ? '+' : ''}$${profit.toFixed(2)}</td>
+                <td class="${roi >= 0 ? 'profit-plus' : 'profit-minus'}">${roi.toFixed(1)}%</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+}
+
+// Apply session-mode date filtering (reused by both updateUI and renderTournaments)
+function applySessionDateFilter(data, groupMode) {
+    let result = [...data];
+    
+    if (groupMode === '6meses' || groupMode === '12meses') {
+        const months = groupMode === '6meses' ? 6 : 12;
+        const cutoff = new Date();
+        cutoff.setMonth(cutoff.getMonth() - months);
+        cutoff.setHours(0, 0, 0, 0);
+        result = result.filter(t => {
+            if (!t.date) return false;
+            const parts = t.date.split('-');
+            if (parts.length !== 3) return false;
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+            return d >= cutoff;
+        });
+    }
+    
+    if (groupMode === 'personalizado') {
+        const fromVal = document.getElementById('session-from') ? document.getElementById('session-from').value : '';
+        const toVal = document.getElementById('session-to') ? document.getElementById('session-to').value : '';
+        if (fromVal) {
+            result = result.filter(t => t.date && t.date >= fromVal);
+        }
+        if (toVal) {
+            result = result.filter(t => t.date && t.date <= toVal);
+        }
+    }
+    
+    return result;
 }
 
 function calculateStats(data) {
@@ -604,6 +765,11 @@ function calculateStats(data) {
         document.querySelector('#stat-max-buyin .value').textContent = '$0.00';
         document.querySelector('#stat-total-buyin .value').textContent = '$0.00';
         document.querySelector('#stat-ft-count .value').textContent = '0';
+        document.querySelector('#stat-total-played .value').textContent = '0';
+        document.querySelector('#stat-streak .value').textContent = '-';
+        document.querySelector('#stat-streak .value').className = 'value';
+        document.querySelector('#stat-drawdown .value').textContent = '$0.00';
+        document.querySelector('#stat-drawdown .value').className = 'value';
         return;
     }
 
@@ -633,6 +799,46 @@ function calculateStats(data) {
     const itm = (itmCount / data.length) * 100;
     const avgBuyin = totalInvested / data.length;
 
+    // --- Racha (Streak) ---
+    const dailyProfits = {};
+    data.forEach(t => {
+        if (!t.date) return;
+        if (!dailyProfits[t.date]) dailyProfits[t.date] = 0;
+        const cost = t.buyin * (1 + t.reentries);
+        dailyProfits[t.date] += (t.cash - cost);
+    });
+    const sortedDays = Object.keys(dailyProfits).sort((a, b) => b.localeCompare(a)); // most recent first
+    let streakCount = 0;
+    let streakType = null;
+    for (const day of sortedDays) {
+        const dayProfit = dailyProfits[day];
+        const isPositive = dayProfit >= 0;
+        if (streakType === null) {
+            streakType = isPositive;
+            streakCount = 1;
+        } else if (isPositive === streakType) {
+            streakCount++;
+        } else {
+            break;
+        }
+    }
+
+    // --- Max Drawdown ---
+    const sortedByDateAsc = [...data].sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return 0;
+    });
+    let cumProfit = 0;
+    let peak = 0;
+    let maxDrawdown = 0;
+    sortedByDateAsc.forEach(t => {
+        const cost = t.buyin * (1 + t.reentries);
+        cumProfit += (t.cash - cost);
+        if (cumProfit > peak) peak = cumProfit;
+        const drawdown = peak - cumProfit;
+        if (drawdown > maxDrawdown) maxDrawdown = drawdown;
+    });
+
     // Update Cards
     const profitEl = document.querySelector('#stat-profit .value');
     profitEl.textContent = `$${netProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
@@ -649,6 +855,53 @@ function calculateStats(data) {
     document.querySelector('#stat-max-buyin .value').textContent = `$${maxBuyin.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
     document.querySelector('#stat-total-buyin .value').textContent = `$${totalInvested.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
     document.querySelector('#stat-ft-count .value').textContent = ftCount;
+
+    // Torneos Jugados
+    document.querySelector('#stat-total-played .value').textContent = data.length;
+
+    // Racha
+    const streakEl = document.querySelector('#stat-streak .value');
+    if (streakCount > 0 && streakType !== null) {
+        const emoji = streakType ? '🔥' : '❄️';
+        streakEl.textContent = `${emoji} ${streakCount}`;
+        streakEl.className = `value ${streakType ? 'positive' : 'negative'}`;
+        document.querySelector('#stat-streak .sub-label').textContent = streakType ? 'Días positivos seguidos' : 'Días negativos seguidos';
+    } else {
+        streakEl.textContent = '-';
+        streakEl.className = 'value';
+    }
+
+    // Max Drawdown
+    const ddEl = document.querySelector('#stat-drawdown .value');
+    ddEl.textContent = `-$${maxDrawdown.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    ddEl.className = `value ${maxDrawdown > 0 ? 'negative' : ''}`;
+
+    // Bankroll Management Alert
+    const bankrollInput = document.getElementById('initial-bankroll');
+    const alertBanner = document.getElementById('bankroll-alert');
+    if (bankrollInput && alertBanner) {
+        const bankroll = parseFloat(bankrollInput.value) || 0;
+        if (bankroll > 0 && avgBuyin > 0) {
+            const pct = (avgBuyin / bankroll) * 100;
+            if (pct > 5) {
+                alertBanner.innerHTML = `⚠️ <strong>Alerta de Bankroll:</strong> Tu buy-in promedio ($${avgBuyin.toFixed(2)}) representa el <strong>${pct.toFixed(1)}%</strong> de tu bankroll ($${bankroll.toFixed(0)}). Se recomienda no superar el 5%.`;
+                alertBanner.style.display = 'block';
+                alertBanner.style.background = 'linear-gradient(135deg, rgba(255,82,82,0.15), rgba(255,82,82,0.05))';
+                alertBanner.style.borderColor = 'rgba(255,82,82,0.4)';
+                alertBanner.style.color = '#ff5252';
+            } else if (pct > 2) {
+                alertBanner.innerHTML = `💡 <strong>Aviso:</strong> Tu buy-in promedio ($${avgBuyin.toFixed(2)}) es el <strong>${pct.toFixed(1)}%</strong> de tu bankroll. Zona moderada (2-5%).`;
+                alertBanner.style.display = 'block';
+                alertBanner.style.background = 'linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,215,0,0.04))';
+                alertBanner.style.borderColor = 'rgba(255,215,0,0.3)';
+                alertBanner.style.color = '#ffd700';
+            } else {
+                alertBanner.style.display = 'none';
+            }
+        } else {
+            alertBanner.style.display = 'none';
+        }
+    }
 }
 
 function getTags(name) {
@@ -676,16 +929,25 @@ function renderTournaments(data) {
 
     // Sort by date descending
     const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
-    const sessionMode = toggleSessionBtn && toggleSessionBtn.textContent.includes('Sesiones');
+    const groupMode = sessionGroupMode ? sessionGroupMode.value : 'torneos';
 
-    if (sessionMode) {
+    if (groupMode !== 'torneos') {
+        // Use shared session date filter
+        let filteredSorted = applySessionDateFilter(sorted, groupMode);
+        
+        // Group tournaments by the selected period
         const sessions = {};
-        sorted.forEach(t => {
-            if (!sessions[t.date]) sessions[t.date] = [];
-            sessions[t.date].push(t);
+        filteredSorted.forEach(t => {
+            const key = getSessionKey(t.date, groupMode);
+            if (!sessions[key]) sessions[key] = { label: getSessionLabel(t.date, groupMode), tourneys: [] };
+            sessions[key].tourneys.push(t);
         });
 
-        for (const [date, tourneys] of Object.entries(sessions)) {
+        // Sort session keys
+        const sortedKeys = Object.keys(sessions).sort((a, b) => b.localeCompare(a));
+
+        for (const key of sortedKeys) {
+            const { label, tourneys } = sessions[key];
             let totalBuyin = 0;
             let totalCash = 0;
             let totalReentries = 0;
@@ -696,21 +958,22 @@ function renderTournaments(data) {
             });
             const profit = totalCash - totalBuyin;
             
-            let sessionCashColor = '#ffd700'; // Yellow
+            let sessionCashColor = '#ffd700';
             if (totalCash === 0) {
-                sessionCashColor = '#888888'; // Gray
+                sessionCashColor = '#888888';
             } else if (totalCash < totalBuyin) {
-                sessionCashColor = '#ff5252'; // Red
+                sessionCashColor = '#ff5252';
             }
 
             const row = document.createElement('tr');
             row.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
             row.style.borderTop = '2px solid rgba(255,255,255,0.1)';
+            const safeKey = key.replace(/[^a-zA-Z0-9-]/g, '_');
             row.innerHTML = `
                 <td style="text-align: center;">
-                    <input type="checkbox" class="session-checkbox" data-date="${date}" onchange="onSessionCheckboxChange(this)" style="width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-color);">
+                    <input type="checkbox" class="session-checkbox" data-date="${safeKey}" onchange="onSessionCheckboxChange(this)" style="width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-color);">
                 </td>
-                <td><strong>📅 ${date}</strong></td>
+                <td><strong>📅 ${label}</strong></td>
                 <td><strong>${tourneys.length} Torneos</strong></td>
                 <td><strong>$${totalBuyin.toFixed(2)}</strong></td>
                 <td><strong>${totalReentries}</strong></td>
@@ -719,14 +982,14 @@ function renderTournaments(data) {
                     <strong>${profit >= 0 ? '+' : ''}$${profit.toFixed(2)}</strong>
                 </td>
                 <td colspan="3" style="text-align: right;">
-                    <button class="btn-secondary" onclick="toggleSessionDetails('${date}')" style="padding: 2px 8px; font-size: 0.8rem; cursor: pointer;">Detalle 🔽</button>
+                    <button class="btn-secondary" onclick="toggleSessionDetails('${safeKey}')" style="padding: 2px 8px; font-size: 0.8rem; cursor: pointer;">Detalle 🔽</button>
                 </td>
             `;
             tournamentList.appendChild(row);
             
             tourneys.forEach(t => {
                 const tr = createTournamentRow(t);
-                tr.classList.add(`session-detail-${date}`);
+                tr.classList.add(`session-detail-${safeKey}`);
                 tr.style.display = 'none';
                 tr.style.opacity = '0.7';
                 tournamentList.appendChild(tr);
@@ -737,6 +1000,54 @@ function renderTournaments(data) {
             tournamentList.appendChild(createTournamentRow(t));
         });
     }
+}
+
+// Helper: generate a grouping key based on the session mode
+function getSessionKey(dateStr, mode) {
+    if (!dateStr) return 'sin-fecha';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const d = new Date(parts[0], parts[1] - 1, parts[2]);
+    
+    if (mode === 'diario' || mode === '6meses' || mode === '12meses' || mode === 'personalizado') {
+        return dateStr; // group by exact date
+    } else if (mode === 'semanal') {
+        // ISO week: get Monday of that week
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(d);
+        monday.setDate(diff);
+        return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
+    } else if (mode === 'mensual') {
+        return `${parts[0]}-${parts[1]}`;
+    }
+    return dateStr;
+}
+
+// Helper: generate a human-readable label for each session group
+function getSessionLabel(dateStr, mode) {
+    if (!dateStr) return 'Sin Fecha';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    
+    if (mode === 'diario' || mode === '6meses' || mode === '12meses' || mode === 'personalizado') {
+        return dateStr;
+    } else if (mode === 'semanal') {
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(d);
+        monday.setDate(diff);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        return `Sem ${monday.getDate()} ${meses[monday.getMonth()]} → ${sunday.getDate()} ${meses[sunday.getMonth()]} ${monday.getFullYear()}`;
+    } else if (mode === 'mensual') {
+        const mesesFull = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        return `${mesesFull[parseInt(parts[1]) - 1]} ${parts[0]}`;
+    }
+    return dateStr;
 }
 
 function createTournamentRow(t) {
