@@ -28,175 +28,177 @@
                 <button id="add-tournament-btn" class="btn-primary">+ Nuevo Torneo</button>
             </div>
         </header>
-        <div id="session-mode-banner" style="display: none; background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05)); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 10px 20px; margin-bottom: 15px; text-align: center; color: #ffd700; font-weight: 600; font-size: 0.95rem; letter-spacing: 0.5px;">
+
+        <div id="session-mode-banner" style="display: none; background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05)); border: 1px solid rgba(255,215,0,0.3); border-radius: 10px; padding: 8px 16px; margin-bottom: 10px; text-align: center; color: #ffd700; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.5px;">
             📊 Modo Sesión: <span id="session-mode-label">Diaria</span>
         </div>
-        <div id="bankroll-alert" style="display: none; border: 1px solid; border-radius: 12px; padding: 10px 20px; margin-bottom: 15px; text-align: center; font-weight: 500; font-size: 0.9rem;"></div>
+        <div id="bankroll-alert" style="display: none; border: 1px solid; border-radius: 10px; padding: 8px 16px; margin-bottom: 10px; text-align: center; font-weight: 500; font-size: 0.85rem;"></div>
 
-        <section class="stats-grid">
-            <div class="stat-card" id="stat-profit" title="Ganancia neta total. Se calcula como: Total Cobrado − Total Invertido (buy-ins + re-entrys).">
-                <label>Profit Total</label>
-                <div class="value">$0.00</div>
-                <div class="trend">0.0%</div>
-            </div>
-            <div class="stat-card" id="stat-roi" title="Return on Investment. Fórmula: (Profit Neto ÷ Total Invertido) × 100. Un ROI de 50% significa que por cada $1 invertido ganaste $0.50 extra.">
-                <label>ROI</label>
-                <div class="value">0%</div>
-                <div class="sub-label">Return on Investment</div>
-            </div>
-            <div class="stat-card" id="stat-itm" title="In The Money. Porcentaje de torneos donde tu cobro fue igual o mayor al costo total de entrada (buy-in + re-entrys). Un buen ITM en MTT es 15-20%.">
-                <label>ITM%</label>
-                <div class="value">0%</div>
-                <div class="sub-label">Cobro &ge; Buy-in</div>
-            </div>
-            <div class="stat-card" id="stat-avg-buyin" title="Promedio del costo total de tus entradas. Útil para saber en qué rango de stakes estás jugando habitualmente.">
-                <label>Avg Buy-in</label>
-                <div class="value">$0.00</div>
-                <div class="sub-label">Media de entrada</div>
-            </div>
-            <div class="stat-card" id="stat-max-win" title="Tu mejor resultado en un solo torneo. Se calcula como: Cobro − (Buy-in × (1 + Re-entrys)). Es tu premio neto más alto.">
-                <label>Mayor Ganancia</label>
-                <div class="value">$0.00</div>
-                <div class="sub-label">Mejor cobro neto</div>
-            </div>
-            <div class="stat-card" id="stat-itm-count" title="Cantidad de veces que terminaste en posición de cobro (tu cobro fue igual o mayor al costo de entrada).">
-                <label>Puestos Premiados</label>
-                <div class="value">0</div>
-                <div class="sub-label">Total de cobros (ITM)</div>
-            </div>
-            <div class="stat-card" id="stat-max-buyin" title="El torneo más caro en el que participaste, considerando buy-in × (1 + re-entrys). Sirve para evaluar tu manejo de bankroll.">
-                <label>Buy-in Más Alto</label>
-                <div class="value">$0.00</div>
-                <div class="sub-label">Mayor entrada pagada</div>
-            </div>
-            <div class="stat-card" id="stat-total-buyin" title="Suma total de todo lo que invertiste en buy-ins y re-entrys. Es tu 'capital en riesgo' acumulado.">
-                <label>Buy-ins Totales</label>
-                <div class="value">$0.00</div>
-                <div class="sub-label">Total invertido</div>
-            </div>
-            <div class="stat-card" id="stat-ft-count" title="Cantidad de veces que llegaste a la Mesa Final (Top 9) en torneos con 18 o más jugadores. Indicador clave de consistencia.">
-                <label>Final Tables</label>
-                <div class="value">0</div>
-                <div class="sub-label">Top 9</div>
-            </div>
-            <div class="stat-card" id="stat-total-played" title="Cantidad total de torneos jugados según los filtros activos.">
-                <label>Torneos Jugados</label>
-                <div class="value">0</div>
-                <div class="sub-label">Total registrados</div>
-            </div>
-            <div class="stat-card" id="stat-streak" title="Tu racha actual de sesiones (días) consecutivas positivas o negativas. Una sesión es positiva si el profit del día es mayor a 0.">
-                <label>Racha Actual</label>
-                <div class="value">-</div>
-                <div class="sub-label">Sesiones consecutivas</div>
-            </div>
-            <div class="stat-card" id="stat-drawdown" title="Max Drawdown: la mayor caída acumulada desde un punto alto de tu bankroll. Indica tu peor racha de pérdidas. Cuanto menor, más estable es tu juego.">
-                <label>Max Drawdown</label>
-                <div class="value">$0.00</div>
-                <div class="sub-label">Mayor caída acumulada</div>
-            </div>
-        </section>
+        <!-- ═══════════ DASHBOARD ROW: Stats Sidebar + Chart ═══════════ -->
+        <div class="dashboard-row">
+            <!-- LEFT: Compact Stats -->
+            <aside class="stats-sidebar">
+                <div class="stat-card-mini" id="stat-profit" title="Ganancia neta total. Se calcula como: Total Cobrado − Total Invertido (buy-ins + re-entrys).">
+                    <label>Profit Total</label>
+                    <div class="value">$0.00</div>
+                    <div class="trend">0.0%</div>
+                </div>
+                <div class="stat-card-mini" id="stat-roi" title="Return on Investment. Fórmula: (Profit Neto ÷ Total Invertido) × 100.">
+                    <label>ROI</label>
+                    <div class="value">0%</div>
+                    <div class="sub-label">Return on Investment</div>
+                </div>
+                <div class="stat-card-mini" id="stat-max-win" title="Tu mejor resultado en un solo torneo. Cobro − (Buy-in × (1 + Re-entrys)).">
+                    <label>Mayor Ganancia</label>
+                    <div class="value">$0.00</div>
+                    <div class="sub-label">Mejor cobro neto</div>
+                </div>
+                <div class="stat-card-mini" id="stat-itm-count" title="Cantidad de veces que terminaste en posición de cobro.">
+                    <label>Puestos Premiados</label>
+                    <div class="value">0</div>
+                    <div class="sub-label">Total de cobros (ITM)</div>
+                </div>
+                <div class="stat-card-mini" id="stat-ft-count" title="Cantidad de veces que llegaste a la Mesa Final (Top 9).">
+                    <label>Final Tables</label>
+                    <div class="value">0</div>
+                    <div class="sub-label">Top 9</div>
+                </div>
+                <div class="stat-card-mini" id="stat-total-played" title="Cantidad total de torneos jugados según los filtros activos.">
+                    <label>Torneos Jugados</label>
+                    <div class="value">0</div>
+                    <div class="sub-label">Total registrados</div>
+                </div>
+                <div class="stat-card-mini" id="stat-itm" title="In The Money. Porcentaje de torneos donde tu cobro fue ≥ entrada. Buen ITM en MTT: 15-20%.">
+                    <label>ITM%</label>
+                    <div class="value">0%</div>
+                    <div class="sub-label">Cobro &ge; Buy-in</div>
+                </div>
+                <div class="stat-card-mini" id="stat-avg-buyin" title="Promedio del costo total de tus entradas.">
+                    <label>Avg Buy-in</label>
+                    <div class="value">$0.00</div>
+                    <div class="sub-label">Media de entrada</div>
+                </div>
+                <div class="stat-card-mini" id="stat-max-buyin" title="El torneo más caro en el que participaste.">
+                    <label>Buy-in Más Alto</label>
+                    <div class="value">$0.00</div>
+                    <div class="sub-label">Mayor entrada pagada</div>
+                </div>
+                <div class="stat-card-mini" id="stat-total-buyin" title="Suma total de todo lo que invertiste.">
+                    <label>Buy-ins Totales</label>
+                    <div class="value">$0.00</div>
+                    <div class="sub-label">Total invertido</div>
+                </div>
+                <div class="stat-card-mini" id="stat-streak" title="Racha actual de días consecutivos positivos o negativos.">
+                    <label>Racha Actual</label>
+                    <div class="value">-</div>
+                    <div class="sub-label">Sesiones consecutivas</div>
+                </div>
+                <div class="stat-card-mini" id="stat-drawdown" title="Max Drawdown: la mayor caída acumulada desde un punto alto de tu bankroll.">
+                    <label>Max Drawdown</label>
+                    <div class="value">$0.00</div>
+                    <div class="sub-label">Mayor caída acumulada</div>
+                </div>
+            </aside>
 
-        <section class="chart-section card">
-            <div class="card-header" style="flex-direction: column; align-items: stretch; gap: 15px;">
-                <h2>Evolución de Banca</h2>
-                
-                <div class="filters" style="display: flex; gap: 15px; flex-wrap: wrap; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); align-items: flex-end;">
-                    <div style="display: flex; flex-direction: column; gap: 6px;">
-                        <label style="color: var(--text-dim); font-size: 0.8rem;">Fecha:</label>
-                        <select id="date-filter" class="filter-select" onchange="toggleCustomDate(); updateUI()">
-                            <option value="ALL">Desde siempre</option>
-                            <option value="TODAY">Hoy</option>
-                            <option value="YESTERDAY">Ayer y Hoy</option>
-                            <option value="3_DAYS">Últimos 3 días</option>
-                            <option value="7_DAYS">Últimos 7 días</option>
-                            <option value="THIS_MONTH">Mes en curso</option>
-                            <option value="CUSTOM">Personalizado...</option>
-                        </select>
-                    </div>
-
-                    <div id="custom-date-container" style="display: none; flex-direction: column; gap: 6px;">
-                        <label style="color: var(--text-dim); font-size: 0.8rem;">Rango Personalizado:</label>
-                        <div style="display: flex; gap: 5px;">
-                            <input type="date" id="date-from" class="filter-select" onchange="updateUI()" oninput="updateUI()" title="Desde">
-                            <input type="date" id="date-to" class="filter-select" onchange="updateUI()" oninput="updateUI()" title="Hasta">
+            <!-- RIGHT: Chart + Filters -->
+            <section class="chart-main card">
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
+                    <h2 style="font-size: 1.05rem; margin: 0;">Evolución de Banca</h2>
+                    <div class="filters" style="display: flex; gap: 10px; flex-wrap: wrap; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); align-items: flex-end;">
+                        <div style="display: flex; flex-direction: column; gap: 3px;">
+                            <label style="color: var(--text-dim); font-size: 0.72rem;">Fecha:</label>
+                            <select id="date-filter" class="filter-select" onchange="toggleCustomDate(); updateUI()">
+                                <option value="ALL">Desde siempre</option>
+                                <option value="TODAY">Hoy</option>
+                                <option value="YESTERDAY">Ayer y Hoy</option>
+                                <option value="3_DAYS">Últimos 3 días</option>
+                                <option value="7_DAYS">Últimos 7 días</option>
+                                <option value="THIS_MONTH">Mes en curso</option>
+                                <option value="CUSTOM">Personalizado...</option>
+                            </select>
                         </div>
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-                    <label style="color: var(--text-dim); font-size: 0.8rem; display: flex; justify-content: space-between;">
-                            <span>Tipos de Torneo (Desmarca para ocultar):</span>
-                            <div>
-                                <span style="color: var(--primary-color); cursor: pointer; text-decoration: underline; margin-right: 15px;" onclick="checkAllFilters()">Marcar Todos</span>
-                                <span style="color: var(--primary-color); cursor: pointer; text-decoration: underline;" onclick="uncheckAllFilters()">Desmarcar Todos</span>
+                        <div id="custom-date-container" style="display: none; flex-direction: column; gap: 3px;">
+                            <label style="color: var(--text-dim); font-size: 0.72rem;">Rango:</label>
+                            <div style="display: flex; gap: 4px;">
+                                <input type="date" id="date-from" class="filter-select" onchange="updateUI()" oninput="updateUI()" title="Desde">
+                                <input type="date" id="date-to" class="filter-select" onchange="updateUI()" oninput="updateUI()" title="Hasta">
                             </div>
-                        </label>
-                        <div class="toggle-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <style>
-                                .toggle-label {
-                                    background: rgba(255,255,255,0.05);
-                                    padding: 6px 12px;
-                                    border-radius: 20px;
-                                    font-size: 0.85rem;
-                                    cursor: pointer;
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 6px;
-                                    border: 1px solid rgba(255,255,255,0.2);
-                                    color: white;
-                                }
-                                .toggle-label input {
-                                    accent-color: var(--primary-color);
-                                    width: 16px;
-                                    height: 16px;
-                                    cursor: pointer;
-                                }
-                            </style>
-                            <label class="toggle-label"><input type="checkbox" id="tgl-regular" checked onchange="updateUI()"> Clásicos</label>
-                            <label class="toggle-label"><input type="checkbox" id="tgl-bounty" checked onchange="updateUI()"> Bounty/PKO</label>
-                            <label class="toggle-label"><input type="checkbox" id="tgl-turbo" checked onchange="updateUI()"> Turbo</label>
-                            <label class="toggle-label"><input type="checkbox" id="tgl-hyper" checked onchange="updateUI()"> Hyper</label>
-                            <label class="toggle-label"><input type="checkbox" id="tgl-ggseries" checked onchange="updateUI()"> GG Series</label>
-                            <label class="toggle-label"><input type="checkbox" id="tgl-wsop" checked onchange="updateUI()"> WSOP</label>
-                            <label class="toggle-label"><input type="checkbox" id="tgl-flipout" checked onchange="updateUI()"> Flipouts</label>
-                            <label class="toggle-label"><input type="checkbox" id="tgl-sat" checked onchange="updateUI()"> Satélites/Steps</label>
-                            <label class="toggle-label"><input type="checkbox" id="tgl-tbuilder" checked onchange="updateUI()"> T$ Builder</label>
-                            <label class="toggle-label"><input type="checkbox" id="tgl-ft" checked onchange="updateUI()"> Final Tables</label>
                         </div>
-                    </div>
-
-                    <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
-                        <select id="session-group-mode" onchange="updateUI()" style="background: #1a1a2e; color: #ffd700; border: 1px solid rgba(255,215,0,0.3); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; cursor: pointer; font-weight: 600;">
-                            <option value="torneos" style="background: #1a1a2e; color: white;">Vista: Torneos</option>
-                            <option value="diario" style="background: #1a1a2e; color: white;">Sesión: Diaria</option>
-                            <option value="semanal" style="background: #1a1a2e; color: white;">Sesión: Semanal</option>
-                            <option value="mensual" style="background: #1a1a2e; color: white;">Sesión: Mensual</option>
-                            <option value="6meses" style="background: #1a1a2e; color: white;">Últimos 6 Meses</option>
-                            <option value="12meses" style="background: #1a1a2e; color: white;">Últimos 12 Meses</option>
-                            <option value="personalizado" style="background: #1a1a2e; color: white;">Personalizado</option>
-                        </select>
-                        <div id="session-custom-range" style="display: none; gap: 8px; align-items: center;">
-                            <input type="date" id="session-from" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 8px; font-size: 0.8rem;" oninput="updateUI()">
-                            <span style="color: rgba(255,255,255,0.5);">→</span>
-                            <input type="date" id="session-to" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 8px; font-size: 0.8rem;" oninput="updateUI()">
+                        <div style="display: flex; flex-direction: column; gap: 3px; flex: 1;">
+                            <label style="color: var(--text-dim); font-size: 0.72rem; display: flex; justify-content: space-between;">
+                                <span>Tipos de Torneo (Desmarca para ocultar):</span>
+                                <div>
+                                    <span style="color: var(--primary-color); cursor: pointer; text-decoration: underline; margin-right: 8px; font-size: 0.72rem;" onclick="checkAllFilters()">Marcar Todos</span>
+                                    <span style="color: var(--primary-color); cursor: pointer; text-decoration: underline; font-size: 0.72rem;" onclick="uncheckAllFilters()">Desmarcar Todos</span>
+                                </div>
+                            </label>
+                            <div class="toggle-group" style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                <style>
+                                    .toggle-label {
+                                        background: rgba(255,255,255,0.05);
+                                        padding: 3px 8px;
+                                        border-radius: 14px;
+                                        font-size: 0.75rem;
+                                        cursor: pointer;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 4px;
+                                        border: 1px solid rgba(255,255,255,0.15);
+                                        color: white;
+                                    }
+                                    .toggle-label input {
+                                        accent-color: var(--primary-color);
+                                        width: 12px;
+                                        height: 12px;
+                                        cursor: pointer;
+                                    }
+                                </style>
+                                <label class="toggle-label"><input type="checkbox" id="tgl-regular" checked onchange="updateUI()"> Clásicos</label>
+                                <label class="toggle-label"><input type="checkbox" id="tgl-bounty" checked onchange="updateUI()"> Bounty/PKO</label>
+                                <label class="toggle-label"><input type="checkbox" id="tgl-turbo" checked onchange="updateUI()"> Turbo</label>
+                                <label class="toggle-label"><input type="checkbox" id="tgl-hyper" checked onchange="updateUI()"> Hyper</label>
+                                <label class="toggle-label"><input type="checkbox" id="tgl-ggseries" checked onchange="updateUI()"> GG Series</label>
+                                <label class="toggle-label"><input type="checkbox" id="tgl-wsop" checked onchange="updateUI()"> WSOP</label>
+                                <label class="toggle-label"><input type="checkbox" id="tgl-flipout" checked onchange="updateUI()"> Flipouts</label>
+                                <label class="toggle-label"><input type="checkbox" id="tgl-sat" checked onchange="updateUI()"> Satélites/Steps</label>
+                                <label class="toggle-label"><input type="checkbox" id="tgl-tbuilder" checked onchange="updateUI()"> T$ Builder</label>
+                                <label class="toggle-label"><input type="checkbox" id="tgl-ft" checked onchange="updateUI()"> Final Tables</label>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <select id="session-group-mode" onchange="updateUI()" style="background: #1a1a2e; color: #ffd700; border: 1px solid rgba(255,215,0,0.3); border-radius: 8px; padding: 5px 8px; font-size: 0.78rem; cursor: pointer; font-weight: 600;">
+                                <option value="torneos" style="background: #1a1a2e; color: white;">Vista: Torneos</option>
+                                <option value="diario" style="background: #1a1a2e; color: white;">Sesión: Diaria</option>
+                                <option value="semanal" style="background: #1a1a2e; color: white;">Sesión: Semanal</option>
+                                <option value="mensual" style="background: #1a1a2e; color: white;">Sesión: Mensual</option>
+                                <option value="6meses" style="background: #1a1a2e; color: white;">Últimos 6 Meses</option>
+                                <option value="12meses" style="background: #1a1a2e; color: white;">Últimos 12 Meses</option>
+                                <option value="personalizado" style="background: #1a1a2e; color: white;">Personalizado</option>
+                            </select>
+                            <div id="session-custom-range" style="display: none; gap: 5px; align-items: center;">
+                                <input type="date" id="session-from" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 3px 6px; font-size: 0.72rem;" oninput="updateUI()">
+                                <span style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">→</span>
+                                <input type="date" id="session-to" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 3px 6px; font-size: 0.72rem;" oninput="updateUI()">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="chart-container">
-                <!-- Chart will be rendered here -->
-                <canvas id="bankrollChart"></canvas>
-            </div>
-        </section>
+                <div class="chart-container" style="height: 280px;">
+                    <canvas id="bankrollChart"></canvas>
+                </div>
+            </section>
+        </div>
 
-        <section class="card" style="display: flex; gap: 20px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 300px;">
-                <h2 style="margin-bottom: 15px; font-size: 1.1rem;">📊 Profit por Tipo</h2>
-                <div style="height: 420px;">
+        <!-- ═══════════ PROFIT BY TYPE ROW ═══════════ -->
+        <section class="card" style="display: flex; gap: 20px; flex-wrap: wrap; padding: 1rem;">
+            <div style="flex: 1; min-width: 280px;">
+                <h2 style="margin-bottom: 8px; font-size: 1rem;">📊 Profit por Tipo</h2>
+                <div style="height: 300px;">
                     <canvas id="profitByTypeChart"></canvas>
                 </div>
             </div>
-            <div style="flex: 1.4; min-width: 400px;">
-                <h2 style="margin-bottom: 15px; font-size: 1.1rem;">📋 ROI por Tipo</h2>
+            <div style="flex: 1.4; min-width: 380px;">
+                <h2 style="margin-bottom: 8px; font-size: 1rem;">📋 ROI por Tipo</h2>
                 <div class="table-wrapper">
                     <table id="roi-by-type-table">
                         <thead>
@@ -215,6 +217,7 @@
             </div>
         </section>
 
+        <!-- ═══════════ HISTORY TABLE ═══════════ -->
         <section class="history-section card">
             <div class="card-header" style="flex-direction: column; align-items: flex-start; gap: 15px;">
                 <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
@@ -227,7 +230,6 @@
                         <button id="export-csv" class="btn-secondary">Exportar</button>
                     </div>
                 </div>
-
             </div>
             <div class="table-wrapper">
                 <style>
@@ -330,6 +332,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="app.js?v=21"></script>
+    <script src="app.js?v=22"></script>
 </body>
 </html>

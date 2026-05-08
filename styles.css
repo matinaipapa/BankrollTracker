@@ -28,9 +28,9 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1.2rem 1.5rem;
 }
 
 /* Header */
@@ -38,7 +38,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
 }
 
 .logo-area h1 {
@@ -90,14 +90,79 @@ header {
     margin-top: 1rem;
 }
 
-/* Stats Grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+/* Dashboard Layout */
+.dashboard-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: stretch;
 }
 
+/* Stats Sidebar (Left) */
+.stats-sidebar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 280px;
+    min-width: 280px;
+    flex-shrink: 0;
+}
+
+.stat-card-mini {
+    background: var(--card-bg);
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card-mini::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%);
+    opacity: 0.04;
+}
+
+.stat-card-mini label {
+    display: block;
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.stat-card-mini .value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.stat-card-mini .sub-label {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin-top: 1px;
+}
+
+.stat-card-mini .trend {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+}
+
+.stat-card-mini .value.positive { color: var(--accent-green); }
+.stat-card-mini .value.negative { color: var(--accent-red); }
+
+/* Chart Main (Right) */
+.chart-main {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Legacy stat-card support */
 .stat-card {
     background: var(--card-bg);
     padding: 1.5rem;
@@ -105,17 +170,6 @@ header {
     border: 1px solid var(--border-color);
     position: relative;
     overflow: hidden;
-}
-
-.stat-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100px;
-    height: 100px;
-    background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%);
-    opacity: 0.05;
 }
 
 .stat-card label {
@@ -142,10 +196,10 @@ header {
 /* Card components */
 .card {
     background: var(--card-bg);
-    border-radius: 16px;
+    border-radius: 12px;
     border: 1px solid var(--border-color);
-    margin-bottom: 2rem;
-    padding: 1.5rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
 }
 
 .card-header {
